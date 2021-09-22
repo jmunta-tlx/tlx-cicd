@@ -1,0 +1,14 @@
+# Scan:
+#  docker-compose -f .devcontainer/docker-compose-sonarscanner.yml up
+version: "3"
+
+services:
+  sonarscanner:
+    image: sonarsource/sonar-scanner-cli
+    container_name: sonar-scanner
+    hostname: sonar-scanner
+    mem_limit: 2g
+    network_mode: host
+    volumes:
+      - ..:/usr/src
+    command: sonar-scanner -Dsonar.login=${SONARQUBE_TOKEN}  -Dproject.settings=sonar-project.properties

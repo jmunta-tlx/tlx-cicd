@@ -1,0 +1,48 @@
+# Service start:
+#  
+# Scan:
+#  docker run --rm -it -v $(pwd):/usr/src --network=host sonarsource/sonar-scanner-cli sonar-scanner  \
+# -Dsonar.login=a007a13e72e197fa43a971376041523f8ec448c1  -Dproject.settings=sonar-project.properties
+version: "3"
+
+services:
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    hostname: sonarqube
+    restart: unless-stopped
+    mem_limit: 4g
+    networks:
+        - sonarnet
+    ports:
+      - 9000:9000
+    environment:
+      - sonar.jdbc.url=jdbc:postgresql://sonarqube_pg/sonar
+      - sonar.jdbc.username=sonar
+      - sonar.jdbc.password=sonar123!
+
+  sonarqube_pg:
+    image: postgres:12
+    container_name: sonarqube_pg
+    hostname: sonarqube_pg
+    restart: unless-stopped
+    mem_limit: 2g
+    networks:
+        - sonarnet
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar123!
+    volumes:
+      - pg_db:/var/lib/postgresql
+      - pg_data:/var/lib/postgresql/data
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+volumes:
+  pg_db:
+  pg_data:
+
+networks:
+    sonarnet:
