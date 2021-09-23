@@ -5,6 +5,7 @@
 ##########################################
 WORKSPACE=$PWD
 OPERATION="$@"
+SCRIPT_DIR=`dirname $0`
 : ${OPERATION:="help"}
 : ${DEV_MODE:="local"}
 : ${USER_NAME:="jmunta-tlx"}
@@ -31,8 +32,8 @@ echo '  _   _   _   _   _   _   _   _   _   _
 start_sonarqube()
 {
     echo " -- start: sonarqube server --"
-    echo docker-compose -f .devcontainer/docker-compose-sonarqube.yml up
-    docker-compose -f .devcontainer/docker-compose-sonarqube.yml up &
+    echo docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarqube.yml up
+    docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarqube.yml up &
     echo "Waiting for the server to come up fully..."
     bash -c 'while [[ "$(curl -s -u'"${SONARQUBE_USER}:${SONARQUBE_PWD}"' http://localhost:9000/api/system/health | jq ''.health''|xargs)" != "GREEN" ]]; do echo "Waiting for sonarqube: sleeping for 5 secs."; sleep 5; done'
     echo "Sonarqube should be up!"
@@ -40,7 +41,7 @@ start_sonarqube()
 stop_sonarqube()
 {
     echo " -- stop: sonarqube server --"
-    docker-compose -f .devcontainer/docker-compose-sonarqube.yml down
+    docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarqube.yml down
 }
 
 build()
@@ -48,7 +49,7 @@ build()
     echo '+-+-+-+-+-+-+-+
 |t|l|x|-|a|p|i|
 +-+-+-+-+-+-+-+'
-    docker build -f $PWD/.devcontainer/Dockerfile-dev-tools -t ${PROJECT}-dev-tools .
+    docker build -f ${SCRIPT_DIR}/.devcontainer/Dockerfile-dev-tools -t ${PROJECT}-dev-tools .
     echo docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
     docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
 }
@@ -70,8 +71,8 @@ start_sonarscan()
     echo SONARQUBE_PWD=${SONARQUBE_PWD} >>.docker_env_file
     echo CODE_BRANCH="`git describe --all|cut -f2 -d'/'`" >>..docker_env_file
 
-    echo docker-compose -f .devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file up
-    docker-compose -f .devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file up
+    echo docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file up
+    docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file up
     echo "Waiting for the scan tasks to complete..."
     bash -c 'while [[ "$(curl -s -u'"${SONARQUBE_TOKEN}:"' http://localhost:9000/api/ce/activity_status|jq ''.pending+.inProgress'')" != "0" ]]; do echo "Waiting for scan tasks to complete: sleeping for 5 secs."; sleep 5; done'
     echo "Scan tasks (pending+inProgress=0) must have been completed!"
@@ -79,7 +80,7 @@ start_sonarscan()
 stop_sonarscan()
 {
     echo " -- stop: sonar scan --"
-    docker-compose -f .devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file down
+    docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file down
 }
 # TBD: Generate report
 
