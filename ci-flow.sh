@@ -11,6 +11,8 @@ OPERATION="$@"
 : ${INSTALL_MAVEN:="FALSE"}
 
 : ${PROJECT:="tlx-api"}
+: ${PROJECT_TYPE:="mvn"}
+: ${ARTIFACT_PATH:="target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"}
 : ${SONARQUBE_USER:="admin"}
 : ${SONARQUBE_PWD:="admin"}
 
@@ -25,52 +27,6 @@ echo '  _   _   _   _   _   _   _   _   _   _
 ( t | r | u | s | t | l | o | g | i | x )
  \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ '
 
-
-setup_tools_local()
-{
-    if [ ! -d ${USER_HOME_DIR}/maven ] &&  [ "${INSTALL_MAVEN}" != "FALSE" ]; then
-        : ${MAVEN_VERSION:="3.8.1"}
-        USER_HOME_DIR=~
-        MAVEN_SHA=0ec48eb515d93f8515d4abe465570dfded6fa13a3ceb9aab8031428442d9912ec20f066b2afbf56964ffe1ceb56f80321b50db73cf77a0e2445ad0211fb8e38d
-        MAVEN_BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
-
-        mkdir ${USER_HOME_DIR}/maven \
-        && curl -fsSL -o /tmp/apache-maven.tar.gz ${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
-        && tar -xzf /tmp/apache-maven.tar.gz -C ${USER_HOME_DIR}/maven --strip-components=1 \
-        && rm -f /tmp/apache-maven.tar.gz \
-        && export PATH=${PATH}:${USER_HOME_DIR}/maven/bin && mvn --version
-
-        export MAVEN_HOME=${USER_HOME_DIR}/maven
-        export MAVEN_CONFIG="$USER_HOME_DIR/.m2"
-        mvn -version
-    fi
-}
-setup_s3_bucket_data()
-{
-    if [ "${DEV_MODE}" == "s3" ]; then
-        # Setup data files in S3 bucket
-        DATA_FILES="admin_user.json,compliances.json,data_catalog.json,data_sources.json,reports.json,sensitive_attributes.json"
-        AWS_REGION="us-east-2"
-        cd $WORKSPACE/src/main/resources
-        STORAGE_BUCKET="tlx-dev-meta-${USER_NAME}"
-        aws s3 mb s3://tlx-dev-meta-${USER_NAME}
-        for DATA_FILE in `echo ${DATA_FILES}|sed 's/,/ /g'`
-        do
-            aws s3 cp ${DATA_FILE} s3://${STORAGE_BUCKET}
-        done
-        if [ -f ~/.aws/config ]; then
-            AWS_REGION="`grep 'region' ~/.aws/config |cut -f2 -d'='|xargs`"
-        fi
-        if [ -f ~/.aws/credentials ]; then
-            ACCESS_KEY="`grep 'aws_access_key_id' ~/.aws/credentials |cut -f2 -d'='|xargs`"
-            SECRET_ACCESS_KEY="`grep 'aws_secret_access_key' ~/.aws/credentials |cut -f2 -d'='|xargs`"
-        fi
-        export ACCESS_KEY="${ACCESS_KEY}"
-        export SECRET_ACCESS_KEY="${SECRET_ACCESS_KEY}"
-        export AWS_REGION="${AWS_REGION}"
-        export S3_METADATABUCKET="${STORAGE_BUCKET}" 
-    fi
-}
 # Sonarqube
 start_sonarqube()
 {
@@ -87,22 +43,22 @@ stop_sonarqube()
     docker-compose -f .devcontainer/docker-compose-sonarqube.yml down
 }
 
-# Build tlx-api
-build_tlx-api()
+build()
 {
     echo '+-+-+-+-+-+-+-+
 |t|l|x|-|a|p|i|
 +-+-+-+-+-+-+-+'
-    docker build -f $PWD/.devcontainer/Dockerfile-dev-tools -t tlx-api-dev-tools .
-    echo docker run -v $PWD:/workspaces/tlx-api -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name tlx-api-dev-tools tlx-api-dev-tools bash -c "cd /workspaces/tlx-api; mvn -B clean package ${MAVEN_OPTS}"
-    docker run -v $PWD:/workspaces/tlx-api -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name tlx-api-dev-tools tlx-api-dev-tools bash -c "cd /workspaces/tlx-api; mvn -B clean package ${MAVEN_OPTS}"
+    docker build -f $PWD/.devcontainer/Dockerfile-dev-tools -t ${PROJECT}-dev-tools .
+    echo docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+    docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
 }
-run_tlx-api()
+
+run()
 {
     echo '+-+-+-+-+-+-+-+
 |t|l|x|-|a|p|i|
 +-+-+-+-+-+-+-+'
-    docker run -v $PWD:/workspaces/tlx-api -v $HOME/.m2:/root/.m2 -p 8080:8080 --name tlx-api-dev-tools tlx-api-dev-tools bash -c "cd /workspaces/tlx-api; java -jar target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"
+    docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; java -jar ${ARTIFACT_PATH}"
 }
 
 # SCA: sonar scan
@@ -156,15 +112,15 @@ show_tools_local()
 }
 show_tools()
 {
-    echo docker run tlx-api-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
-    docker run tlx-api-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
+    echo docker run ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
+    docker run ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
 }
 
 help()
 {
     echo "$0 <operation>"
-    echo "$0  [all]|start_sonarqube|create_sonarqube_project|build_tlx-api|start_sonarscan|stop_sonarscan|stop_sonarqube|run_tlx-api|docker_clean_containers|docker_clean_images|docker_clean|show_tools_local|show_tools|generate_sonarqube_report|help"
-    echo "Exmaples: $0 build_tlx-api"
+    echo "$0  [all]|start_sonarqube|create_sonarqube_project|build|start_sonarscan|stop_sonarscan|stop_sonarqube|run|docker_clean_containers|docker_clean_images|docker_clean|show_tools_local|show_tools|generate_sonarqube_report|help"
+    echo "Exmaples: $0 build"
 }
 generate_sonarqube_token()
 {
@@ -217,15 +173,15 @@ store_artifacts()
     if [ "${ARTIFACTS_LOCATION}" == "s3://*" ]; then
         echo "Storing artifacts to S3 at ${ARTIFACTS_LOCATION}"
         AWS_PROFILE=${AWS_PROFILE} AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            aws s3 cp /workspaces/tlx-api/target/trustlogix-api-service-0.0.1-SNAPSHOT.jar ${ARTIFACTS_LOCATION}/
+            aws s3 cp /workspaces/${PROJECT}/${ARTIFACT_PATH} ${ARTIFACTS_LOCATION}/
     else 
         echo "WARNING: Not storing artifacts: "
-        echo "   /workspaces/tlx-api/target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"
+        echo "   /workspaces/${PROJECT}/${ARTIFACT_PATH}"
     fi
 }
 
 # Build docker image and push to ECR
-build_push_docker()
+push_docker_image()
 {
     # Build a docker container with image and
     # push it to ECR so that it can
@@ -259,7 +215,7 @@ all()
 {
     start_sonarqube
     create_sonarqube_project
-    build_tlx-api
+    build
     start_sonarscan
     stop_sonarscan
     generate_sonarqube_report

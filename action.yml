@@ -1,30 +1,32 @@
 name: 'Tlx Continuous Integration'
-description: 'Continuous Integration flow'
+description: 'Tlx Continuous Integration flow'
 inputs:
-  project-build:
-    description: 'Project repo'
+  project-name:
+    description: 'Project repo/name'
     required: true
-    default: 'repo'
   project-type:
     description: 'Project type'
     required: true
     default: 'mvn'
+  project-artifact:
+    description: 'Project artifact path'
+    required: true
   project-steps:
-    description: 'Project steps: start_sonarqube create_sonarqube_project build_tlx-api start_sonarscan stop_sonarscan generate_sonarqube_report stop_sonarqube'
+    description: 'Project steps: start_sonarqube create_sonarqube_project build start_sonarscan stop_sonarscan generate_sonarqube_report stop_sonarqube store_artifacts push_docker_image'
     required: true
     default: 'all'
 outputs:
   artifact:
     description: "artifact"
-    value: ${{ steps.project-artifacts.outputs.jar-location }}
+    value: ${{ steps.project-artifacts.outputs.artifact-location }}
 runs:
   using: "composite"
   steps:
     - id: project-ci
-      run: ${{ github.action_path }}/ci-flow.sh ${{ inputs.project-steps }}
+      run: PROJECT=${{ inputs.project-name }} PROJECT_TYPE=${{ inputs.project-type }} ARTIFACT_PATH=${{ inputs.project-artifact}} ${{ github.action_path }}/ci-flow.sh ${{ inputs.project-steps }}
       shell: bash
     - id: project-artifacts
-      run: echo "::set-output name=jar-location::$(echo $PROJECT_ARTIFACT)"
+      run: echo "::set-output name=artifact-location::$(echo $ARTIFACT_PATH)"
       shell: bash
     
     
