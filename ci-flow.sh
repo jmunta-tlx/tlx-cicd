@@ -5,7 +5,7 @@
 ##########################################
 WORKSPACE=$PWD
 OPERATION="$@"
-SCRIPT_DIR=`dirname $0`
+SCRIPT_DIR=$( cd `dirname $0`; pwd )
 : ${OPERATION:="help"}
 : ${DEV_MODE:="local"}
 : ${USER_NAME:="jmunta-tlx"}
