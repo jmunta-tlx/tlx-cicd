@@ -28,6 +28,16 @@ echo '  _   _   _   _   _   _   _   _   _   _
 ( t | r | u | s | t | l | o | g | i | x )
  \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ '
 
+# Prepare project type
+prepare_project()
+{
+    cp -r ${SCRIPT_DIR}/project_${PROJECT_TYPE}/Dockerfile-dev-tools ${SCRIPT_DIR}/.devcontainer/
+    if [ ! -f sonar-project.properties ]; then
+        sed -e "s/{{SONAR_PROJECT}}/${PROJECT}/g" \
+            ${SCRIPT_DIR}/project_${PROJECT_TYPE}/sonar-project.properties >${PWD}/sonar-project.properties
+    fi
+}
+
 # Sonarqube
 start_sonarqube()
 {
@@ -88,19 +98,26 @@ stop_sonarscan()
 docker_clean()
 {
     echo " -- docker clean --"
-    docker rm $(docker ps -aq) --force
-    docker rmi $(docker images -aq) --force
-    docker volume rm $(docker volume ls -q) 
+    docker_clean_containers
+    docker_clean_volumes
+    #docker_clean_images
 }
 docker_clean_containers()
 {
     echo " -- docker clean containers --"
-    docker rm $(docker ps -aq) --force
+    #docker rm $(docker ps -aq) --force || true
+    docker rm ${PROJECT}-dev-tools sonarqube sonarqube_pg  --force || true
 }
 docker_clean_images()
 {
     echo " -- docker clean images --"
-    docker rmi $(docker images -aq) --force 
+    docker rmi $(docker images -aq) --force || true
+}
+
+docker_clean_volumes()
+{
+    #docker volume rm $(docker volume ls -q) || true
+    docker volume rm devcontainer_pg_data devcontainer_pg_db || true
 }
 
 show_tools_local()
@@ -225,6 +242,7 @@ all()
 
 WORKDIR=$PWD
 cd $WORKDIR
+prepare_project
 for TASK in `echo ${OPERATION}`
 do
     ${TASK}

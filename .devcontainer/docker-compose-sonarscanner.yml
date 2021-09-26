@@ -10,5 +10,5 @@ services:
     mem_limit: 2g
     network_mode: host
     volumes:
-      - ..:/usr/src
-    command: sonar-scanner -Dsonar.login=${SONARQUBE_TOKEN}  -Dproject.settings=sonar-project.properties
+      - $PWD:/usr/src
+    command: sonar-scanner -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.exclusions=${SONAR_EXCLUSIONS} -Dsonar.cpd.exclusions=${SONAR_CPD_EXCLUSIONS} -Dproject.settings=./sonar-project.properties
