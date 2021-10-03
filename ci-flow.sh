@@ -201,6 +201,7 @@ store_artifacts()
 prepare_release()
 {
     docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
+        -e GITHUB_TOKEN=${GITHUB_TOKEN} \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools \
         ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; npx semantic-release"
