@@ -60,8 +60,8 @@ build()
 |t|l|x|-|a|p|i|
 +-+-+-+-+-+-+-+'
     docker build -f ${SCRIPT_DIR}/.devcontainer/Dockerfile-dev-tools -t ${PROJECT}-dev-tools .
-    echo docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
-    docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+    echo docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+    docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
 }
 
 run()
@@ -130,8 +130,8 @@ show_tools_local()
 }
 show_tools()
 {
-    echo docker run ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
-    docker run ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
+    echo docker run --rm ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
+    docker run --rm ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
 }
 
 help()
@@ -198,35 +198,26 @@ store_artifacts()
     fi
 }
 
-# Build docker image and push to ECR
-push_docker_image()
+prepare_release()
 {
-    # Build a docker container with image and
-    # push it to ECR so that it can
-    LATEST_IMAGE=$(aws ecr describe-images --repository-name tlx-engine/apiserver --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text --region us-east-2)
-    if [[ $LATEST_IMAGE -eq "latest" ]]; then 
-        LATEST_IMAGE=$(aws ecr describe-images --repository-name tlx-engine/apiserver --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[1]' --output text --region us-east-2) 
+    docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
+        -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools \
+        ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; npx semantic-release"
+    if [ ! -f new_release_version.txt ]; then
+        echo "WARNING: No new release as release version file is not found! "
+        return
     fi
-    if [[ $LATEST_IMAGE -ne "latest" ]]; then 
-        LATEST_IMAGE=$(aws ecr describe-images --repository-name tlx-engine/apiserver --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text --region us-east-2)
-    fi
-    echo "#### ECR latest image version:: $LATEST_IMAGE"
-    IFS='.' read -r -a array <<< "$LATEST_IMAGE"
-    VERSION_CNT=$(echo "${#array[@]}")
-    if [[ $VERSION_CNT -eq 3 ]];then
-        LATEST_IMAGE_SUB_VERSION="${array[1]}.${array[2]}"
-    fi	
-    if [[ $VERSION_CNT -eq 2 ]];then	
-        LATEST_IMAGE_SUB_VERSION="${array[1]}.0"
-    fi
-    echo "#### image subversion :: $LATEST_IMAGE_SUB_VERSION"
-    NEW_IMAGE=$(echo $LATEST_IMAGE_SUB_VERSION 0.1 | awk '{print $1 + $2}')
-    IMAGE_TAG="${array[0]}.$NEW_IMAGE"
+    IMAGE_TAG="`cat new_release_version.txt|cut -f2 -d=`"
+    echo "IMAGE_TAG=${IMAGE_TAG}"
+    cd target && JAR_NAME="`ls *.jar`" && cd ..
     echo "#### new image tag version pushed :: $IMAGE_TAG"
-    docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-    docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
+    echo docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$JAR_VERSION  --build-arg ARTIFACT=${JAR_NAME} .
+    echo docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    
 }
+
 
 # All operations
 all()
@@ -238,6 +229,7 @@ all()
     stop_sonarscan
     generate_sonarqube_report
     stop_sonarqube
+    prepare_release
 }
 
 WORKDIR=$PWD
