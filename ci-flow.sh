@@ -214,8 +214,10 @@ prepare_release()
     cd target && JAR_NAME="`ls *.jar`" && cd ..
     echo "#### new image tag version pushed :: $IMAGE_TAG"
     echo docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$JAR_VERSION  --build-arg ARTIFACT=${JAR_NAME} .
+    docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$JAR_VERSION  --build-arg ARTIFACT=${JAR_NAME} .
     echo docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    echo "::set-output name=DOCKER_IMAGE::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
     
 }
 
