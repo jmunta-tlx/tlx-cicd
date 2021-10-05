@@ -1,0 +1,18 @@
+# TrustLogix dev docker image
+ARG JDK_VERSION=12
+FROM openjdk:${JDK_VERSION}-jdk
+
+ARG SERVICE_PORT="8080"
+ENV WORKDIR=/workspaces/tlx-ui
+
+RUN yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm
+RUN yum install git python3 jq -y && pip3 install awscli && git --version && java -version && python3 -V && aws --version
+
+RUN curl -sL -o nodejs_repo_14.sh https://rpm.nodesource.com/setup_14.x && bash ./nodejs_repo_14.sh
+RUN yum install -y nodejs && node --version
+RUN npm install -g semantic-release @semantic-release/changelog @semantic-release/commit-analyzer @semantic-release/exec semantic-release/git semantic-release/release-notes-generator
+
+RUN yum install -y yarn
+
+CMD tail -f /dev/null
+

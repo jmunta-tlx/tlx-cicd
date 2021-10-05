@@ -56,20 +56,53 @@ stop_sonarqube()
 
 build()
 {
+    build_${PROJECT_TYPE}
+}
+
+build_mvn()
+{
     echo '+-+-+-+-+-+-+-+
-|t|l|x|-|a|p|i|
+|t|l|x|-|m|v|n|
 +-+-+-+-+-+-+-+'
     docker build -f ${SCRIPT_DIR}/.devcontainer/Dockerfile-dev-tools -t ${PROJECT}-dev-tools .
-    echo docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
-    docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+    echo docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
+        -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
+        bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+    docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
+        -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
+        bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+}
+
+#yarn install && CI=false yarn build
+build_yarn()
+{
+    echo '+-+-+-+-+-+-+-+
+|t|l|x|-|y|a|r|n|
++-+-+-+-+-+-+-+'
+    docker build -f ${SCRIPT_DIR}/.devcontainer/Dockerfile-dev-tools -t ${PROJECT}-dev-tools .
+    echo docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
+        -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
+        bash -c "cd /workspaces/${PROJECT}; yarn install && CI=false yarn build"
+    docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
+        -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
+        bash -c "cd /workspaces/${PROJECT}; yarn install && CI=false yarn build"
 }
 
 run()
 {
     echo '+-+-+-+-+-+-+-+
-|t|l|x|-|a|p|i|
+|t|l|x|-|m|v|n|
 +-+-+-+-+-+-+-+'
-    docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; java -jar ${ARTIFACT_PATH}"
+    docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
+        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; java -jar ${ARTIFACT_PATH}"
 }
 
 # SCA: sonar scan
@@ -120,24 +153,28 @@ docker_clean_volumes()
     docker volume rm devcontainer_pg_data devcontainer_pg_db || true
 }
 
-show_tools_local()
-{
-    export PATH=${PATH}:~/maven/bin
-    java -version
-    mvn -version
-    aws --version
-    git --version
-}
 show_tools()
+{
+    show_tools_${PROJECT_TYPE}
+}
+
+show_tools_mvn()
 {
     echo docker run --rm ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
     docker run --rm ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
 }
 
+show_tools_yarn()
+{
+    echo docker run --rm ${PROJECT}-dev-tools bash -c "git --version; node --version; yarn --version"
+    docker run --rm ${PROJECT}-dev-tools bash -c "git --version; node --version; yarn --version"
+}
+
+
 help()
 {
     echo "$0 <operation>"
-    echo "$0  [all]|start_sonarqube|create_sonarqube_project|build|start_sonarscan|stop_sonarscan|stop_sonarqube|run|docker_clean_containers|docker_clean_images|docker_clean|show_tools_local|show_tools|generate_sonarqube_report|help"
+    echo "$0  [all]|start_sonarqube|create_sonarqube_project|build|start_sonarscan|stop_sonarscan|stop_sonarqube|run|docker_clean_containers|docker_clean_images|docker_clean|show_tools|generate_sonarqube_report|help"
     echo "Exmaples: $0 build"
 }
 generate_sonarqube_token()
