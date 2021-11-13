@@ -2,8 +2,11 @@ name: 'Tlx Continuous Integration'
 description: 'Tlx Continuous Integration flow'
 inputs:
   project-name:
-    description: 'Project repo/name'
+    description: 'Project repo name'
     required: true
+  project-dir:
+    description: 'Project dir'
+    required: false
   project-type:
     description: 'Project type'
     required: true
@@ -23,7 +26,7 @@ runs:
   using: "composite"
   steps:
     - id: project-ci
-      run: PROJECT=${{ inputs.project-name }} PROJECT_TYPE=${{ inputs.project-type }} ARTIFACT_PATH=${{ inputs.project-artifact}} ${{ github.action_path }}/ci-flow.sh ${{ inputs.project-steps }}
+      run: PROJECT=${{ inputs.project-name }} PROJECT_DIR=${{ inputs.project-dir }} PROJECT_TYPE=${{ inputs.project-type }} ARTIFACT_PATH=${{ inputs.project-artifact}} ${{ github.action_path }}/ci-flow.sh ${{ inputs.project-steps }}
       shell: bash
     - id: project-artifacts
       run: echo "::set-output name=artifact-location::$(echo $ARTIFACT_PATH)"

@@ -12,6 +12,7 @@ SCRIPT_DIR=$( cd `dirname $0`; pwd )
 : ${INSTALL_MAVEN:="FALSE"}
 
 : ${PROJECT:="tlx-api"}
+: ${PROJECT_DIR:="."}
 : ${PROJECT_TYPE:="mvn"}
 : ${ARTIFACT_PATH:="target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"}
 : ${SONARQUBE_USER:="admin"}
@@ -69,12 +70,12 @@ build_mvn()
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; mvn -B clean package ${MAVEN_OPTS}"
     docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}; mvn -B clean package ${MAVEN_OPTS}"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; mvn -B clean package ${MAVEN_OPTS}"
 }
 
 #yarn install && CI=false yarn build
@@ -88,12 +89,12 @@ build_yarn()
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}; yarn install && CI=false yarn build"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn install && CI=false yarn build"
     docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}; yarn install && CI=false yarn build"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn install && CI=false yarn build"
 }
 
 run()
@@ -102,7 +103,7 @@ run()
 |t|l|x|-|m|v|n|
 +-+-+-+-+-+-+-+'
     docker run -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
-        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; java -jar ${ARTIFACT_PATH}"
+        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; java -jar ${ARTIFACT_PATH}"
 }
 
 # SCA: sonar scan
@@ -241,7 +242,7 @@ prepare_release()
         -e GITHUB_TOKEN=${GITHUB_TOKEN} \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools \
-        ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}; npx semantic-release"
+        ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; npx semantic-release"
     if [ ! -f new_release_version.txt ]; then
         echo "WARNING: No new release as release version file is not found! "
         return
