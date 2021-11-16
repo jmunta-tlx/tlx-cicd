@@ -13,6 +13,7 @@ SCRIPT_DIR=$( cd `dirname $0`; pwd )
 
 : ${PROJECT:="tlx-api"}
 : ${PROJECT_DIR:="."}
+: ${PROJECT_PACKAGE_DIR:="."}
 : ${PROJECT_TYPE:="mvn"}
 : ${ARTIFACT_PATH:="target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"}
 : ${SONARQUBE_USER:="admin"}
@@ -242,7 +243,7 @@ prepare_release()
         -e GITHUB_TOKEN=${GITHUB_TOKEN} \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools \
-        ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; npx semantic-release"
+        ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_PACKAGE_DIR}; npx semantic-release"
     if [ ! -f new_release_version.txt ]; then
         echo "WARNING: No new release as release version file is not found! "
         return
