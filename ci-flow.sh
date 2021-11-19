@@ -252,8 +252,8 @@ prepare_release()
     echo "IMAGE_TAG=${IMAGE_TAG}"
     CUR_DIR=`pwd`
     echo "CUR_DIR=$CUR_DIR"
-    cd /workspaces/${PROJECT}/${PROJECT_DIR}
-    echo `pwd`
+    cd ${PROJECT_DIR}
+    echo `pwd; ls`
     cd target && JAR_NAME="`ls *.jar`" && cd ..
     echo "#### new image tag version pushed :: ${IMAGE_TAG}"
     echo docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}  --build-arg ARTIFACT=${JAR_NAME} .
