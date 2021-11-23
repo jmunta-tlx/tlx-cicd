@@ -15,6 +15,7 @@ SCRIPT_DIR=$( cd `dirname $0`; pwd )
 : ${PROJECT_DIR:="."}
 : ${PROJECT_PACKAGE_DIR:="."}
 : ${PROJECT_TYPE:="mvn"}
+: ${BUILD_COMMAND:="mvn -B clean package"}
 : ${ARTIFACT_PATH:="target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"}
 : ${SONARQUBE_USER:="admin"}
 : ${SONARQUBE_PWD:="admin"}
@@ -71,12 +72,12 @@ build_mvn()
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; mvn -B clean package ${MAVEN_OPTS}"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; ${BUILD_COMMAND} ${MAVEN_OPTS}"
     docker run --rm -v $PWD:/workspaces/${PROJECT} -v $HOME/.m2:/root/.m2 -p 8080:8080 \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; mvn -B clean package ${MAVEN_OPTS}"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; ${BUILD_COMMAND} ${MAVEN_OPTS}"
 }
 
 #yarn install && CI=false yarn build
