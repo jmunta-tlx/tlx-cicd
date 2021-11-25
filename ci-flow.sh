@@ -258,7 +258,7 @@ prepare_release()
     echo `pwd; ls`
     cd target && JAR_NAME="`ls *.jar`" && cd ..
     echo "#### new image tag version pushed :: ${IMAGE_TAG}"
-    sed -i "s/trustlogix-api-service-.*.jar/${IMAGE_TAG}/g" Dockerfile
+    sed -i "s/${ARTIFACT_NAME}-.*.jar/${JAR_NAME}/g" Dockerfile
     echo docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG} .
     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG} .
     echo docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
