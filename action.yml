@@ -23,6 +23,9 @@ inputs:
   build-command:
     description: 'Project build command'
     required: false
+  publish-docker-build-args:
+    description: 'Publishing docker build arguments'
+    required: false
   project-steps:
     description: 'Project steps: start_sonarqube create_sonarqube_project build start_sonarscan stop_sonarscan generate_sonarqube_report stop_sonarqube store_artifacts push_docker_image'
     required: true

@@ -18,6 +18,7 @@ SCRIPT_DIR=$( cd `dirname $0`; pwd )
 : ${BUILD_COMMAND:="mvn -B clean package"}
 : ${ARTIFACT_PATH:="target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"}
 : ${ARTIFACT_NAME:="trustlogix-api-service"}
+: ${PUBLISH_DOCKER_BUILD_ARGS:="--build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"}
 : ${SONARQUBE_USER:="admin"}
 : ${SONARQUBE_PWD:="admin"}
 
@@ -259,8 +260,8 @@ prepare_release()
     cd target && JAR_NAME="`ls *.jar`" && cd ..
     echo "#### new image tag version pushed :: ${IMAGE_TAG}"
     sed -i "s/${ARTIFACT_NAME}-.*.jar/${JAR_NAME}/g" Dockerfile
-    echo docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG} .
-    docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG} .
+    echo docker build ${PUBLISH_DOCKER_BUILD_ARGS} -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG} .
+    docker build ${PUBLISH_DOCKER_BUILD_ARGS} -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG} .
     echo docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
     docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
     echo "::set-output name=DOCKER_IMAGE::$ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}"
