@@ -21,12 +21,14 @@ SCRIPT_DIR=$( cd `dirname $0`; pwd )
 : ${PUBLISH_DOCKER_BUILD_ARGS:="--build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"}
 : ${SONARQUBE_USER:="admin"}
 : ${SONARQUBE_PWD:="admin"}
+: ${RETRY_COUNT:=2}
 
 if [ -f .docker_env_file ]; then
     source .docker_env_file
 fi
 
 export PROJECT=${PROJECT}
+
     
 echo '  _   _   _   _   _   _   _   _   _   _  
  / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ 
@@ -250,7 +252,13 @@ prepare_release()
         ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_PACKAGE_DIR}; npx semantic-release" 2> ${OUT_SEMANTIC_RELEASE}
     
     if [ -f ${OUT_SEMANTIC_RELEASE} ]; then
-        OUT_OF_VERSION="`egrep '^Based.*within the range' ${OUT_SEMANTIC_RELEASE} |grep -oh '>=[0-9].[0-9].[0-9]'|cut -f2 -d'='`"
+        cat ${OUT_SEMANTIC_RELEASE}
+        OUT_OF_VERSION="`egrep '^Based.*within the range' ${OUT_SEMANTIC_RELEASE} |grep -oh '>=[0-9]\+\.[0-9]\+\.[0-9]\+ <'|cut -f2 -d'='`"
+        if [ ! "${OUT_OF_VERSION}" = "" ]; then
+            OUT_OF_VERSION="`egrep ': The release .* on branch .* cannot be published as it is out of range' ${OUT_SEMANTIC_RELEASE} |grep -oh '[0-9]\+\.[0-9]\+\.[0-9]\+'`"
+        else
+            OUT_OF_VERSION="`egrep '^Based.*within the range' ${OUT_SEMANTIC_RELEASE} |grep -oh '>=[0-9]\+\.[0-9]\+\.[0-9]\+'|cut -f2 -d'='`"
+        fi
         if [ ! "${OUT_OF_VERSION}" = "" ]; then
           PATCH_VERSION="`echo ${OUT_OF_VERSION}|cut -f3 -d'.'`"
           NEW_PATCH_VERSION=`expr ${PATCH_VERSION} + 1`
@@ -260,16 +268,23 @@ prepare_release()
           cat ${OUT_SEMANTIC_RELEASE} |sed -n '/following commits are responsible for the invalid release/,/Those commits should be moved to a valid branch/p;/Those commits should be moved to a valid branch/q' \
                 | egrep -v 'following commits are responsible for the invalid release'|egrep -v 'Those commits should be moved to a valid branch' > /tmp/new_commits.txt
           
-          NEW_CHANGE_LOG=/tmp/new_changelog.md
-          echo "## [v${NEW_TAG_VERSION}] (`date +'%Y-%m-%d'`)" >${NEW_CHANGE_LOG}
-          cat /tmp/commits.txt >>${NEW_CHANGE_LOG}
-          cat CHANGELOG.md >> ${NEW_CHANGE_LOG}
-          cp ${NEW_CHANGE_LOG} CHANGELOG.md
-          cat CHANGELOG.md
-          git add CHANGELOG.md
-          git commit -m "fix: v${NEW_TAG_VERSION} commits" CHANGELOG.md
-          git push origin `git branch |egrep '\*' |cut -f2 -d' '`
-          prepare_release
+          if [ -f /tmp/new_commits.txt ]; then
+            NEW_CHANGE_LOG=/tmp/new_changelog.md
+            echo "## [v${NEW_TAG_VERSION}] (`date +'%Y-%m-%d'`)" >${NEW_CHANGE_LOG}
+            cat /tmp/commits.txt >>${NEW_CHANGE_LOG}
+            cat CHANGELOG.md >> ${NEW_CHANGE_LOG}
+            cp ${NEW_CHANGE_LOG} CHANGELOG.md
+            cat CHANGELOG.md
+            git add CHANGELOG.md
+            git commit -m "fix: v${NEW_TAG_VERSION} commits" CHANGELOG.md
+            git push origin `git branch |egrep '\*' |cut -f2 -d' '`
+          else
+            echo "No commits found for changelog update."
+          fi
+          RETRY_COUNT=`expr $RETRY_COUNT - 1 `
+          if [ $RETRY_COUNT -gt 0 ]; then
+            prepare_release
+          fi
         fi
     fi
     if [ ! -f new_release_version.txt ]; then
