@@ -255,11 +255,13 @@ prepare_release()
         cat ${OUT_SEMANTIC_RELEASE}
         OUT_OF_VERSION="`egrep '^Based.*within the range' ${OUT_SEMANTIC_RELEASE} |grep -oh '>=[0-9]\+\.[0-9]\+\.[0-9]\+ <'|cut -f2 -d'='`"
         if [ ! "${OUT_OF_VERSION}" = "" ]; then
-            OUT_OF_VERSION="`egrep ': The release .* on branch .* cannot be published as it is out of range' ${OUT_SEMANTIC_RELEASE} |grep -oh '[0-9]\+\.[0-9]\+\.[0-9]\+'`"
+            OUT_OF_VERSION="`egrep ': The release .* on branch .* cannot be published as it is out of range' ${OUT_SEMANTIC_RELEASE} |grep -oh '[0-9]\+\.[0-9]\+\.[0-9]\+'`"            
         else
             OUT_OF_VERSION="`egrep '^Based.*within the range' ${OUT_SEMANTIC_RELEASE} |grep -oh '>=[0-9]\+\.[0-9]\+\.[0-9]\+'|cut -f2 -d'='`"
         fi
         if [ ! "${OUT_OF_VERSION}" = "" ]; then
+          echo "Getting the latest tag..."
+          OUT_OF_VERSION="`git tag | sort -V | tail -1 |sed 's/v//g'`"
           PATCH_VERSION="`echo ${OUT_OF_VERSION}|cut -f3 -d'.'`"
           NEW_PATCH_VERSION=`expr ${PATCH_VERSION} + 1`
           NEW_TAG_VERSION="`echo ${OUT_OF_VERSION}|cut -f1-2 -d'.'`.${NEW_PATCH_VERSION}"
@@ -271,11 +273,12 @@ prepare_release()
           if [ -f /tmp/new_commits.txt ]; then
             NEW_CHANGE_LOG=/tmp/new_changelog.md
             echo "## [v${NEW_TAG_VERSION}] (`date +'%Y-%m-%d'`)" >${NEW_CHANGE_LOG}
-            cat /tmp/commits.txt >>${NEW_CHANGE_LOG}
+            cat /tmp/new_commits.txt >>${NEW_CHANGE_LOG}
             cat CHANGELOG.md >> ${NEW_CHANGE_LOG}
             cp ${NEW_CHANGE_LOG} CHANGELOG.md
             cat CHANGELOG.md
             git add CHANGELOG.md
+            git config --global user.name "Trustlogix CI"
             git commit -m "fix: v${NEW_TAG_VERSION} commits" CHANGELOG.md
             git push origin `git branch |egrep '\*' |cut -f2 -d' '`
           else
