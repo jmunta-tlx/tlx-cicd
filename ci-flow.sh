@@ -268,7 +268,7 @@ prepare_release()
           NEW_TAG_VERSION="`echo ${OUT_OF_VERSION}|cut -f1-2 -d'.'`.${NEW_PATCH_VERSION}"
           git branch
           git config --global hub.protocol https
-          git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${PROJECT}.git
+          git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/trustlogix/${PROJECT}.git
           git config --global user.name "jmunta-tlx"
           git config --global user.email jmunta@trustlogix.io
           git tag -a v${NEW_TAG_VERSION} -m "Leveling version ${NEW_TAG_VERSION}"
