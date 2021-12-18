@@ -20,9 +20,10 @@ inputs:
   project-artifact-name:
     description: 'Project artifact name'
     required: false
-  project-branch: 'develop'
+  project-branch:
     description: 'Project repo branch'
     required: false
+    default: 'develop'
   build-command:
     description: 'Project build command'
     required: false
