@@ -23,6 +23,10 @@ SCRIPT_DIR=$( cd `dirname $0`; pwd )
 : ${SONARQUBE_USER:="admin"}
 : ${SONARQUBE_PWD:="admin"}
 : ${RETRY_COUNT:=2}
+: ${GIT_USER_NAME:="jmunta-tlx"}
+: ${GIT_USER_EMAIL:="jmunta@trustlogix.io"}
+: ${PROJECT_ROOT_ACCOUNT:="trustlogix"}
+
 
 if [ -f .docker_env_file ]; then
     source .docker_env_file
@@ -268,7 +272,9 @@ prepare_release()
           NEW_TAG_VERSION="`echo ${OUT_OF_VERSION}|cut -f1-2 -d'.'`.${NEW_PATCH_VERSION}"
           git branch
           git config --global hub.protocol https
-          git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/trustlogix/${PROJECT}.git
+          git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${PROJECT_ROOT_ACCOUNT}/${PROJECT}.git
+          git config --global user.name ${GIT_USER_NAME}
+          git config --global user.email ${GIT_USER_EMAIL}
           git tag -a v${NEW_TAG_VERSION} -m "Leveling version ${NEW_TAG_VERSION}"
           git push origin v${NEW_TAG_VERSION}
           cat ${OUT_SEMANTIC_RELEASE} |sed -n '/following commits are responsible for the invalid release/,/Those commits should be moved to a valid branch/p;/Those commits should be moved to a valid branch/q' \
