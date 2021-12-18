@@ -265,8 +265,10 @@ prepare_release()
           PATCH_VERSION="`echo ${OUT_OF_VERSION}|cut -f3 -d'.'`"
           NEW_PATCH_VERSION=`expr ${PATCH_VERSION} + 1`
           NEW_TAG_VERSION="`echo ${OUT_OF_VERSION}|cut -f1-2 -d'.'`.${NEW_PATCH_VERSION}"
-          git config --global user.name "Trustlogix CI"
-          git config --global user.email devops@trustlogix.io
+          git branch
+          GIT_BRANCH="`git branch |egrep '\*' |cut -f2 -d' '`"
+          git config --global user.name "jmunta-tlx"
+          git config --global user.email jmunta@trustlogix.io
           git tag -a v${NEW_TAG_VERSION} -m "Leveling version ${NEW_TAG_VERSION}"
           git push origin v${NEW_TAG_VERSION}
           cat ${OUT_SEMANTIC_RELEASE} |sed -n '/following commits are responsible for the invalid release/,/Those commits should be moved to a valid branch/p;/Those commits should be moved to a valid branch/q' \
@@ -279,8 +281,6 @@ prepare_release()
             cat CHANGELOG.md >> ${NEW_CHANGE_LOG}
             cp ${NEW_CHANGE_LOG} CHANGELOG.md
             cat CHANGELOG.md
-            git branch
-            GIT_BRANCH="`git branch |egrep '\*' |cut -f2 -d' '`"
             git add CHANGELOG.md
             git commit -m "fix: v${NEW_TAG_VERSION} commits" CHANGELOG.md
             git push origin ${GIT_BRANCH}
