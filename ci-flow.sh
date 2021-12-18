@@ -15,6 +15,7 @@ SCRIPT_DIR=$( cd `dirname $0`; pwd )
 : ${PROJECT_DIR:="."}
 : ${PROJECT_PACKAGE_DIR:="."}
 : ${PROJECT_TYPE:="mvn"}
+: ${PROJECT_BRANCH:="develop"}
 : ${BUILD_COMMAND:="mvn -B clean package"}
 : ${ARTIFACT_PATH:="target/trustlogix-api-service-0.0.1-SNAPSHOT.jar"}
 : ${ARTIFACT_NAME:="trustlogix-api-service"}
@@ -266,7 +267,8 @@ prepare_release()
           NEW_PATCH_VERSION=`expr ${PATCH_VERSION} + 1`
           NEW_TAG_VERSION="`echo ${OUT_OF_VERSION}|cut -f1-2 -d'.'`.${NEW_PATCH_VERSION}"
           git branch
-          GIT_BRANCH="`git branch |egrep '\*' |cut -f2 -d' '`"
+          git config --global hub.protocol https
+          git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${PROJECT}.git
           git config --global user.name "jmunta-tlx"
           git config --global user.email jmunta@trustlogix.io
           git tag -a v${NEW_TAG_VERSION} -m "Leveling version ${NEW_TAG_VERSION}"
@@ -283,7 +285,7 @@ prepare_release()
             cat CHANGELOG.md
             git add CHANGELOG.md
             git commit -m "fix: v${NEW_TAG_VERSION} commits" CHANGELOG.md
-            git push origin ${GIT_BRANCH}
+            git push origin ${PROJECT_BRANCH}
           else
             echo "No commits found for changelog update."
           fi
