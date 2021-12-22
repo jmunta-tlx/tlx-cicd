@@ -307,7 +307,7 @@ prepare_release()
         return
     fi
     IMAGE_TAG="`cat new_release_version.txt|cut -f2 -d=`"
-    echo "IMAGE_TAG=${IMAGE_TAG}"
+    echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
     CUR_DIR=`pwd`
     echo "CUR_DIR=$CUR_DIR"
     cd ${PROJECT_DIR}
