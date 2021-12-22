@@ -272,7 +272,6 @@ prepare_release()
           NEW_TAG_VERSION="`echo ${OUT_OF_VERSION}|cut -f1-2 -d'.'`.${NEW_PATCH_VERSION}"
           pwd
           echo $USER
-          ls -lrt .git
           sudo chmod -R 777 .git
           git branch
           git config --global hub.protocol https
