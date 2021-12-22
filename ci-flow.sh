@@ -273,7 +273,7 @@ prepare_release()
           pwd
           echo $USER
           ls -lrt .git
-          chmod -R 777 .git
+          sudo chmod -R 777 .git
           git branch
           git config --global hub.protocol https
           git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${PROJECT_ROOT_ACCOUNT}/${PROJECT}.git
