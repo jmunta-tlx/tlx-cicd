@@ -270,6 +270,10 @@ prepare_release()
           PATCH_VERSION="`echo ${OUT_OF_VERSION}|cut -f3 -d'.'`"
           NEW_PATCH_VERSION=`expr ${PATCH_VERSION} + 1`
           NEW_TAG_VERSION="`echo ${OUT_OF_VERSION}|cut -f1-2 -d'.'`.${NEW_PATCH_VERSION}"
+          pwd
+          echo $USER
+          ls -lrt .git
+          chmod -R 777 .git
           git branch
           git config --global hub.protocol https
           git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${PROJECT_ROOT_ACCOUNT}/${PROJECT}.git
