@@ -50,6 +50,9 @@ outputs:
   artifact:
     description: "artifact"
     value: ${{ steps.project-artifacts.outputs.artifact-location }}
+  image-tag:
+    description: "image tag built"
+    value: ${{ steps.project-image-tag.outputs.tag }}
 runs:
   using: "composite"
   steps:
@@ -58,6 +61,9 @@ runs:
       shell: bash
     - id: project-artifacts
       run: echo "::set-output name=artifact-location::$(echo $ARTIFACT_PATH)"
+      shell: bash
+    - id: project-image-tag
+      run: echo "::set-output imagetag=tag::$(echo $IMAGE_TAG)"
       shell: bash
     
     
