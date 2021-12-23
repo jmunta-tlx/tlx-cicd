@@ -52,7 +52,7 @@ outputs:
     value: ${{ steps.project-artifacts.outputs.artifact-location }}
   image-tag:
     description: "image tag built"
-    value: ${{ steps.project-image-tag.outputs.tag }}
+    value: ${{ steps.project-image-tag.outputs.image-tag }}
 runs:
   using: "composite"
   steps:
