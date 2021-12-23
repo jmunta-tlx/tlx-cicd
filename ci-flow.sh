@@ -278,6 +278,7 @@ prepare_release()
           git remote set-url origin https://${GITHUB_TOKEN}:x-oauth-basic@github.com/${PROJECT_ROOT_ACCOUNT}/${PROJECT}.git
           git config --global user.name ${GIT_USER_NAME}
           git config --global user.email ${GIT_USER_EMAIL}
+          git checkout ${PROJECT_BRANCH}
           git tag -a v${NEW_TAG_VERSION} -m "Leveling version ${NEW_TAG_VERSION}"
           git push origin v${NEW_TAG_VERSION}
           cat ${OUT_SEMANTIC_RELEASE} |sed -n '/following commits are responsible for the invalid release/,/Those commits should be moved to a valid branch/p;/Those commits should be moved to a valid branch/q' \
@@ -290,6 +291,7 @@ prepare_release()
             cat CHANGELOG.md >> ${NEW_CHANGE_LOG}
             cp ${NEW_CHANGE_LOG} CHANGELOG.md
             cat CHANGELOG.md
+            git checkout ${PROJECT_BRANCH}
             git add CHANGELOG.md
             git commit -m "fix: v${NEW_TAG_VERSION} commits" CHANGELOG.md
             git push origin ${PROJECT_BRANCH}
