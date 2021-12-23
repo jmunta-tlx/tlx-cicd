@@ -63,7 +63,7 @@ runs:
       run: echo "::set-output name=artifact-location::$(echo $ARTIFACT_PATH)"
       shell: bash
     - id: project-image-tag
-      run: echo "::set-output imagetag=tag::$(echo $IMAGE_TAG)"
+      run: echo "::set-output name=image-tag::$(echo $IMAGE_TAG)"
       shell: bash
     
     
