@@ -322,6 +322,7 @@ prepare_release()
     echo docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
     docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
     echo "::set-output name=DOCKER_IMAGE::$ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}"
+    echo "::set-output name=IMAGE_TAG::${IMAGE_TAG}"
     cd $CUR_DIR
     
 }
