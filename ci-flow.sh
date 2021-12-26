@@ -321,8 +321,9 @@ prepare_release()
     docker build ${PUBLISH_DOCKER_BUILD_ARGS} -t $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG} .
     echo docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
     docker push $ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}
-    echo "::set-output name=DOCKER_IMAGE::$ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}"
-    echo "::set-output name=IMAGE_TAG::${IMAGE_TAG}"
+    echo "::set-output name=docker-image::$ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG}"
+    echo "::set-output name=artifact-location::${JAR_NAME}"
+    echo "::set-output name=image-tag::${IMAGE_TAG}"
     cd $CUR_DIR
     
 }
