@@ -20,7 +20,8 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
-RUN yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm
+RUN yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm \
+  && sed -i 's/endpoint.com/endpointdev.com/g' /etc/yum.repos.d/endpoint.repo
 RUN yum install git python3 jq -y && pip3 install awscli && git --version && java -version && mvn -version && python3 -V && aws --version
 
 RUN curl -sL -o nodejs_repo_14.sh https://rpm.nodesource.com/setup_14.x && bash ./nodejs_repo_14.sh
