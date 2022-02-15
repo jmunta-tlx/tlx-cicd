@@ -86,7 +86,14 @@ build_mvn()
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; ${BUILD_COMMAND} ${MAVEN_OPTS}"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; ${BUILD_COMMAND} ${MAVEN_OPTS}" 2>&1 | tee docker_run_build_log.txt
+    if [ -f docker_run_build_log.txt ]; then
+        FAILURES="`grep 'BUILD FAILURE' docker_run_build_log.txt`"
+        if [ "${FAILURES}" != "" ]; then
+            echo "Build failed. exiting..."
+            exit 1
+        fi
+    fi
 }
 
 #yarn install && CI=false yarn build
