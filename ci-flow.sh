@@ -261,7 +261,7 @@ prepare_release()
         -e GITHUB_TOKEN=${GITHUB_TOKEN} \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools \
-        ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_PACKAGE_DIR}; npx semantic-release" 2> ${OUT_SEMANTIC_RELEASE}
+        ${PROJECT}-dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_PACKAGE_DIR}; ls -lrt; git remote -v; npx semantic-release" 2> ${OUT_SEMANTIC_RELEASE}
     
     if [ -f ${OUT_SEMANTIC_RELEASE} ]; then
         cat ${OUT_SEMANTIC_RELEASE}
