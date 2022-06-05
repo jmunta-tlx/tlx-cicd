@@ -112,7 +112,14 @@ build_yarn()
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn install && CI=false yarn build"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn install && CI=false yarn build" 2>&1 | tee docker_run_build_log.txt
+    if [ -f docker_run_build_log.txt ]; then
+        FAILURES="`grep 'returned a non-zero code:' docker_run_build_log.txt`"
+        if [ "${FAILURES}" != "" ]; then
+            echo "Build failed. exiting..."
+            exit 1
+        fi
+    fi
 }
 
 run()
