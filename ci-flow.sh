@@ -113,6 +113,12 @@ build_yarn()
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
         bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn install && CI=false yarn build"
+    
+    docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
+        -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+        --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn start && yarn test:run"
 }
 
 run()
@@ -338,7 +344,6 @@ prepare_release()
     cd $CUR_DIR
     
 }
-
 
 # All operations
 all()
