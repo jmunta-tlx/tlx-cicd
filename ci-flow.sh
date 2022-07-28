@@ -354,6 +354,13 @@ prepare_release()
 # All operations
 all()
 {
+    build
+    prepare_release
+}
+
+
+all_with_sonarqube()
+{
     start_sonarqube
     create_sonarqube_project
     build
@@ -363,6 +370,7 @@ all()
     stop_sonarqube
     prepare_release
 }
+
 
 WORKDIR=$PWD
 cd $WORKDIR
