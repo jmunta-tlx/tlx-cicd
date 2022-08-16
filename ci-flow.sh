@@ -118,6 +118,7 @@ build_yarn()
 }
 
 # Run tests
+: '
 yarn_test_run()
 {
     docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
@@ -126,7 +127,7 @@ yarn_test_run()
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
         bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR};chmod a+x runTests.sh;./runTests.sh"
 }
-
+'
 run()
 {
     echo '+-+-+-+-+-+-+-+
