@@ -118,16 +118,16 @@ build_yarn()
 }
 
 # Run tests
-: '
+
 yarn_test_run()
 {
     docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
         --name ${PROJECT}-dev-tools ${PROJECT}-dev-tools \
-        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR};chmod a+x runTests.sh;./runTests.sh"
+        bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR};chmod a+x runTests.sh;#./runTests.sh"
 }
-'
+
 run()
 {
     echo '+-+-+-+-+-+-+-+
