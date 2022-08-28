@@ -172,11 +172,11 @@ docker_clean_containers()
     #docker rm $(docker ps -aq) --force || true
     docker rm ${PROJECT}-dev-tools sonarqube sonarqube_pg  --force || true
 }
-docker_clean_images()
-{
-    echo " -- docker clean images --"
+#docker_clean_images()
+#{
+    #echo " -- docker clean images --"
     #docker rmi $(docker images -aq) --force || true
-}
+#}
 
 docker_clean_volumes()
 {
