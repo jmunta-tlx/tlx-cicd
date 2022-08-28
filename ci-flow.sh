@@ -55,7 +55,7 @@ start_sonarqube()
 {
     echo " -- start: sonarqube server --"
     echo docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarqube.yml up
-    docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarqube.yml up &
+    docker compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarqube.yml up &
     echo "Waiting for the server to come up fully..."
     bash -c 'while [[ "$(curl -s -u'"${SONARQUBE_USER}:${SONARQUBE_PWD}"' http://localhost:9000/api/system/health | jq ''.health''|xargs)" != "GREEN" ]]; do echo "Waiting for sonarqube: sleeping for 5 secs."; sleep 5; done'
     echo "Sonarqube should be up!"
