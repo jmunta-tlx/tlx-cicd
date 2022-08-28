@@ -174,7 +174,7 @@ docker_clean_containers()
 }
 docker_clean_images()
 {
-    #echo " -- docker clean images --"
+    echo " -- docker clean images --"
     #docker rmi $(docker images -aq) --force || true
 }
 
