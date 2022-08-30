@@ -146,7 +146,7 @@ start_sonarscan()
     echo CODE_BRANCH="`git describe --all|cut -f2 -d'/'`" >>..docker_env_file
 
     echo docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file up
-    docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file up
+    docker compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file up
     echo "Waiting for the scan tasks to complete..."
     bash -c 'while [[ "$(curl -s -u'"${SONARQUBE_TOKEN}:"' http://localhost:9000/api/ce/activity_status|jq ''.pending+.inProgress'')" != "0" ]]; do echo "Waiting for scan tasks to complete: sleeping for 5 secs."; sleep 5; done'
     echo "Scan tasks (pending+inProgress=0) must have been completed!"
@@ -154,7 +154,7 @@ start_sonarscan()
 stop_sonarscan()
 {
     echo " -- stop: sonar scan --"
-    docker-compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file down
+    docker compose -f ${SCRIPT_DIR}/.devcontainer/docker-compose-sonarscanner.yml --env-file .docker_env_file down
 }
 # TBD: Generate report
 
