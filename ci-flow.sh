@@ -106,12 +106,12 @@ build_yarn()
     echo docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-        --name ${PROJECT}-dev-tools semantic-cypress \
+        --name ${PROJECT}-dev-tools biswalaws/dev-tools \
         bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn install && CI=false yarn build"
     docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-        --name ${PROJECT}-dev-tools semantic-cypress \
+        --name ${PROJECT}-dev-tools biswalaws/dev-tools \
         bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR}; yarn install && CI=false yarn build"
     
     yarn_test_run
@@ -123,7 +123,7 @@ yarn_test_run()
     docker run --rm -v $PWD:/workspaces/${PROJECT} -p 8080:8080 \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-        --name ${PROJECT}-dev-tools semantic-cypress \
+        --name ${PROJECT}-dev-tools biswalaws/dev-tools \
         bash -c "cd /workspaces/${PROJECT}/${PROJECT_DIR};chmod a+x runTests.sh;./runTests.sh"
 }
 
@@ -170,13 +170,13 @@ docker_clean_containers()
 {
     echo " -- docker clean containers --"
     #docker rm $(docker ps -aq) --force || true
-    docker rm ${PROJECT}-dev-tools sonarqube sonarqube_pg  --force || true
+    docker rm biswalaws/dev-tools sonarqube sonarqube_pg  --force || true
 }
 #docker_clean_images()
-#{
-    #echo " -- docker clean images --"
-    #docker rmi $(docker images -aq) --force || true
-#}
+{
+    echo " -- docker clean images --"
+    docker rmi $(docker images -aq) --force || true
+}
 
 docker_clean_volumes()
 {
@@ -192,13 +192,13 @@ show_tools()
 show_tools_mvn()
 {
     echo docker run --rm ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
-    docker run --rm ${PROJECT}-dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
+    docker run --rm biswalaws/dev-tools bash -c "java --version; mvn --version; aws --version; git --version"
 }
 
 show_tools_yarn()
 {
-    echo docker run --rm semantic-cypress bash -c "git --version; node --version; yarn --version"
-    docker run --rm semantic-cypress bash -c "git --version; node --version; yarn --version"
+    echo docker run --rm biswalaws/dev-tools bash -c "git --version; node --version; yarn --version"
+    docker run --rm biswalaws/dev-tools bash -c "git --version; node --version; yarn --version"
 }
 
 
@@ -273,7 +273,7 @@ prepare_release()
         -e GITHUB_TOKEN=${GITHUB_TOKEN} \
         -e AWS_PROFILE=${AWS_PROFILE} -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
         -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --name ${PROJECT}-dev-tools \
-        semantic-cypress bash -c "cd /workspaces/${PROJECT}/${PROJECT_PACKAGE_DIR}; ls -lrt; git config --global --add safe.directory /workspaces/${PROJECT}; git remote -v; npx semantic-release" 2> ${OUT_SEMANTIC_RELEASE}
+        biswalaws/dev-tools bash -c "cd /workspaces/${PROJECT}/${PROJECT_PACKAGE_DIR}; ls -lrt; git config --global --add safe.directory /workspaces/${PROJECT}; git remote -v; npx semantic-release" 2> ${OUT_SEMANTIC_RELEASE}
     
     if [ -f ${OUT_SEMANTIC_RELEASE} ]; then
         cat ${OUT_SEMANTIC_RELEASE}
